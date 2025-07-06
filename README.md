@@ -255,6 +255,9 @@ You will instantiate a UI that will let you upload your images, caption them, tr
 
 
 ## Training in RunPod
+
+**🚀 For a complete end-to-end RunPod training guide, see: [docs/RUNPOD_FLUX_TRAINING_GUIDE.md](docs/RUNPOD_FLUX_TRAINING_GUIDE.md)**
+
 Example RunPod template: **runpod/pytorch:2.2.0-py3.10-cuda12.1.1-devel-ubuntu22.04**
 > You need a minimum of 24GB VRAM, pick a GPU by your preference.
 
@@ -266,6 +269,8 @@ Example RunPod template: **runpod/pytorch:2.2.0-py3.10-cuda12.1.1-devel-ubuntu22
 - ~120 GB Disk
 - ~120 GB Pod Volume
 - Start Jupyter Notebook
+
+### Quick Start (for detailed guide see link above)
 
 ### 1. Setup
 ```
