@@ -1,0 +1,103 @@
+---
+# RunPod FLUX.1-dev LoRA Training Configuration Template
+# This is a pre-configured template optimized for RunPod training
+job: extension
+config:
+  # Change this to your model name
+  name: "my_flux_lora_runpod"
+  
+  process:
+    - type: 'sd_trainer'
+      # Output folder for training results
+      training_folder: "output"
+      
+      # Use first GPU (change if you have multiple GPUs)
+      device: cuda:0
+      
+      # Optional: Add trigger word for your LoRA
+      # trigger_word: "your_unique_trigger_word"
+      
+      # LoRA network configuration
+      network:
+        type: "lora"
+        linear: 16          # LoRA rank (4-128, higher = more capacity but slower)
+        linear_alpha: 16    # Usually same as linear
+        
+      # Save configuration
+      save:
+        dtype: float16                    # Precision for saved model
+        save_every: 250                   # Save checkpoint every N steps
+        max_step_saves_to_keep: 4         # Keep last 4 checkpoints
+        push_to_hub: false                # Set to true to upload to Hugging Face
+        # Uncomment below if pushing to hub:
+        # hf_repo_id: "your-username/your-model-name"
+        # hf_private: true
+        
+      # Dataset configuration
+      datasets:
+        # Update this path to your dataset location
+        - folder_path: "/workspace/ai-toolkit/dataset"
+          caption_ext: "txt"
+          caption_dropout_rate: 0.05      # Randomly drop captions 5% of time
+          shuffle_tokens: false           # Don't shuffle caption order
+          cache_latents_to_disk: true     # Cache for faster subsequent runs
+          resolution: [512, 768, 1024]    # Multiple resolutions for better training
+          
+      # Training configuration
+      train:
+        batch_size: 1                     # Batch size (1 for 24GB VRAM)
+        steps: 1000                       # Total training steps (adjust based on dataset)
+        gradient_accumulation_steps: 1    # Accumulate gradients
+        train_unet: true                  # Train the main model
+        train_text_encoder: false         # Don't train text encoder (not supported for FLUX)
+        gradient_checkpointing: true      # Save VRAM (essential for 24GB)
+        noise_scheduler: "flowmatch"      # Noise scheduler for FLUX
+        optimizer: "adamw8bit"            # Memory-efficient optimizer
+        lr: 1e-4                          # Learning rate
+        dtype: bf16                       # Training precision
+        
+        # EMA (Exponential Moving Average) for smoother training
+        ema_config:
+          use_ema: true
+          ema_decay: 0.99
+          
+      # Model configuration
+      model:
+        name_or_path: "black-forest-labs/FLUX.1-dev"
+        is_flux: true
+        quantize: true                    # Use 8-bit quantization to save VRAM
+        low_vram: true                    # Additional VRAM optimizations
+        
+      # Sample generation during training
+      sample:
+        sampler: "flowmatch"              # Must match train.noise_scheduler
+        sample_every: 250                 # Generate samples every N steps
+        width: 1024                       # Sample width
+        height: 1024                      # Sample height
+        
+        # Test prompts for sample generation
+        prompts:
+          - "a person in a coffee shop"
+          - "a beautiful mountain landscape"
+          - "portrait of a person with dramatic lighting"
+          - "a cat sitting on a windowsill"
+          - "urban street scene at sunset"
+          
+        neg: ""                           # Negative prompt (not used for FLUX)
+        seed: 42                          # Random seed for reproducibility
+        walk_seed: true                   # Use different seeds for each sample
+        guidance_scale: 4                 # Guidance scale for generation
+        sample_steps: 20                  # Number of steps for sample generation
+
+# Metadata (optional)
+meta:
+  name: "[name]"
+  version: '1.0'
+  description: "FLUX.1-dev LoRA trained on RunPod"
+  
+# Additional notes:
+# - Adjust 'steps' based on your dataset size (500-4000 typical range)
+# - Increase 'linear' for more capacity but slower training
+# - Monitor GPU memory usage and adjust batch_size if needed
+# - Use 'trigger_word' if you want a specific activation phrase
+# - Set 'push_to_hub: true' and configure HF settings to upload your model
